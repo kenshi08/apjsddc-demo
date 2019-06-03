@@ -1,5 +1,5 @@
 name: neetcloud-simplebp
-version: 1
+version: 2
 formatVersion: 1
 inputs: {}
 resources: 
@@ -7,10 +7,10 @@ resources:
     type: Cloud.Machine
     properties:
       name: mysql-compute 
-      image: ubuntu.clement
-      flavor: t2.small.clement
+      image: ubuntu
+      flavor: small
       constraints:
-        - tag: 'env:dev'
+        - tag: 'platform:vsphere'
       networks: 
         - name: "${wpnet.name}"
       cloudConfig: |
@@ -30,8 +30,4 @@ resources:
     type: Cloud.Network
     properties:
       name: wpnet
-      networkType: public
-      outboundAccess: true
-      constraints:
-        - tag: 'type:public-net'
-        - tag: 'env:dev'
+      networkType: existing
