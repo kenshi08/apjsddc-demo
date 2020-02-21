@@ -1,6 +1,6 @@
 formatVersion: 1
 name: neetcloud-vSphereTemplateBuilder
-version: 3
+version: 4
 inputs:
   vcenter_server:
     type: string
@@ -90,5 +90,13 @@ resources:
           - packer build -force -var-file variables.json ubuntu-18.json
       constraints:
         - tag: 'platform:vsphere'
+      networks:
+        - network: '${resource.mgmt-net.id}'
+  mgmt-net:
+    type: Cloud.Network
+    properties:
+      name: mgmt-net
+      networkType: existing
+      constraints:
         - tag: 'env:test'
         - tag: 'function:mgmt'
