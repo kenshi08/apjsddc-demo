@@ -1,13 +1,15 @@
 formatVersion: 1
 name: neetcloud-vSphereTemplateBuilder
-version: 2
+version: 3
 inputs:
   vcenter_server:
     type: string
     description: vCenter Server to connect to and build within
+    default: vcsa-02a.neetcloud.local
   username:
     type: string
     description: vCenter Username
+    default: administrator@vsphere.local
   password:
     type: string
     encrypted: true
@@ -15,21 +17,27 @@ inputs:
   datastore:
     type: string
     description: Datastore where output artifact will live
+    default: nfs-shared-01
   folder:
     type: string
-    description: 'Folder in vCenter that output artifact will be placed '
+    description: 'Folder in vCenter that output artifact will be placed'
+    default: Templates
   host:
     type: string
     description: ESXi host used for building against
+    default: vesxi06.neetcloud.local
   cluster:
     type: string
     description: Cluster which build should take place against
+    default: Cloud-Test
   network:
     type: string
     description: Network that should be attached to output artifact
+    default: Dev-VM-Net
   ssh_username:
     type: string
     description: SSH Username for connecting to endpoint template during build
+    default: ubuntu
   ssh_password:
     type: string
     encrypted: true
@@ -81,4 +89,6 @@ resources:
           - mv packer-vsphere-builds/ubuntu-18/* /
           - packer build -force -var-file variables.json ubuntu-18.json
       constraints:
-        - tag: 'env:vsphere'
+        - tag: 'platform:vsphere'
+        - tag: 'env:test'
+        - tag: 'function:mgmt'
