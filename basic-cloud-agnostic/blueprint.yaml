@@ -43,6 +43,13 @@ inputs:
       - vsphere
       - azure
     default: aws
+  environment:
+    type: string
+    description: Environment
+    default: test
+    enum:
+      - dev
+      - test
 resources:
   Cloud_Machine_1:
     type: Cloud.Machine
@@ -55,11 +62,13 @@ resources:
         - name: '${Cloud_Network_1.name}'
       constraints:
         - tag: 'platform:${input.platform}'
+        - tag: 'region:${input.environment == "test" ? "sg" : "anz"'
   Cloud_Network_1:
     type: Cloud.Network
     properties:
       name: server_net
       networkType: existing
       constraints:
-        - tag: 'network:${input.network}'
+        - tag: 'function:${input.network}'
         - tag: 'platform:${input.platform}'
+        - tag: 'env:${input.environment}'
