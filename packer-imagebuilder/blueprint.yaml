@@ -1,5 +1,5 @@
 formatVersion: 1
-name: neetcloud-vSphereTemplateBuilder
+name: packer-imagebuilder
 version: 4.2
 inputs:
   vcenter_server:

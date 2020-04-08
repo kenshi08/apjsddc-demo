@@ -1,5 +1,5 @@
 formatVersion: 1
-name: neetcloud-agnostic
+name: basic-cloud-agnostic
 version: 1
 inputs:
   os:
