@@ -3,7 +3,7 @@ name: dingo-route53-aws
 version: 1.0
 inputs:
   os:
-    default: ubuntu
+    default: ubuntu1604
     description: Please select operating system
     enum:
       - ubuntu1604
@@ -40,7 +40,7 @@ resources:
       name: '${input.name}.vmwapj.com'
       type: CNAME
       region: ap-southeast-1
-      account: neetcloud-aws
+      account: apj-sddc-aws
       zone_id: Z1DXP5AZ44Z4IY
       ttl: 300
       records:
@@ -54,18 +54,17 @@ resources:
           instanceProtocol: http
           port: 80
           protocol: http
-      network: '${resource.Network.name}'
+      network: '${resource.web-net.name}'
       instances:
-        - '${resource.Machine.id}'
+        - '${resource.web-svr.id}'
       internetFacing: true
-  Machine:
+  web-svr:
     type: Cloud.Machine
     properties:
       image: '${input.os}'
       flavor: '${input.size}'
       constraints:
         - tag: 'platform: ${input.platform}'
-        - tag: 'region:singapore'
       cloudConfig: |
         packages:
           - apache2
@@ -81,9 +80,9 @@ resources:
             groups: sudo
             shell: /bin/bash
       networks:
-        - name: '${resource.Network.name}'
-  Network:
+        - name: '${resource.web-net.name}'
+  web-net:
     type: Cloud.Network
     properties:
-      name: web
-      networkType: public
+      name: web-net
+      networkType: existing

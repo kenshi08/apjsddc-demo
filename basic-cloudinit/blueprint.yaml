@@ -13,7 +13,7 @@ resources:
         - tag: 'platform:aws'
         - tag: 'env:test'
       networks:
-        - network: '${resource.Cloud_Network_1.id}'
+        - network: '${resource.demo-net.id}'
       cloudConfig: |
         package_update: true
         packages:
