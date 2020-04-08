@@ -1,7 +1,11 @@
 formatVersion: 1
 name: tito-route53
-version: 1.0
+version: 1.1
 inputs:
+  application:
+    type: string
+    default: tito-apj
+    readOnly: true
   region:
     default: ap-southeast-1
     readOnly: true
@@ -24,7 +28,7 @@ resources:
       alias:
         - name: '${input.ELBDNSname}'
           evaluate_target_health: false
-          zone_id: Z1DXP5AZ44Z4IY
+          zone_id: ZWKZPGTI48KDX
       region: '${input.region}'
       zone_id: '${input.route53_zone_id}'
       account: apj-sddc-aws
