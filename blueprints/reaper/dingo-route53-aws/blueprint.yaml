@@ -1,6 +1,6 @@
 formatVersion: 1
 name: dingo-route53-aws
-version: 1.8
+version: 1.9
 inputs:
   os:
     default: ubuntu1604
@@ -39,14 +39,6 @@ inputs:
       - dev
       - test
 resources:
-  pub-net:
-    type: Cloud.Network
-    properties:
-      name: pub-net
-      networkType: existing
-      constraints:
-        - tag: 'env:${input.environment}'
-        - tag: 'function:public'
   Route53_Record_1:
     type: Cloud.Service.AWS.Route53.Record
     dependsOn:
@@ -69,7 +61,7 @@ resources:
           instanceProtocol: http
           port: 80
           protocol: http
-      network: '${resource["pub-net"].id}'
+      network: '${resource["web-net"].id}'
       instances:
         - '${resource["web-svr"].id}'
       internetFacing: true
@@ -78,6 +70,9 @@ resources:
     properties:
       image: '${input.os}'
       flavor: '${input.size}'
+      tags:
+        - value: owner
+          key: '${env.requestedBy}'
       constraints:
         - tag: 'platform: ${input.platform}'
         - tag: 'env:${input.environment}'
@@ -105,4 +100,4 @@ resources:
       networkType: existing
       constraints:
         - tag: 'env:${input.environment}'
-        - tag: 'function: web'
+        - tag: 'function: public'
