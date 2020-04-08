@@ -10,7 +10,7 @@ inputs:
       - ubuntu1604
       - ubuntu1804
       - centos7
-    default: ubuntu
+    default: ubuntu1604
   size:
     title: Size of the server
     description: This value controls the size of the server
