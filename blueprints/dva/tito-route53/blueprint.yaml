@@ -28,7 +28,7 @@ resources:
       alias:
         - name: '${input.ELBDNSname}'
           evaluate_target_health: false
-          zone_id: ZWKZPGTI48KDX
+          zone_id: Z1LMS91P8CMLE5
       region: '${input.region}'
       zone_id: '${input.route53_zone_id}'
       account: apj-sddc-aws
