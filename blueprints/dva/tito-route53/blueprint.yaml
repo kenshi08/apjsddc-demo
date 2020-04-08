@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-route53
-version: 1.1
+version: 1.2
 inputs:
   application:
     type: string
@@ -16,6 +16,7 @@ inputs:
     type: string
   dns_name:
     type: string
+    default: tito-apj.vmwapj.com
     pattern: '[a-z]'
   ELBDNSname:
     type: string
