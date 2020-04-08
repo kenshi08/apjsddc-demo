@@ -37,7 +37,7 @@ resources:
     dependsOn:
       - LB
     properties:
-      name: '${input.name}.vmwapj.com'
+      name: '${input.name}'
       type: CNAME
       region: ap-southeast-1
       account: apj-sddc-aws
@@ -80,7 +80,7 @@ resources:
             groups: sudo
             shell: /bin/bash
       networks:
-        - name: '${resource.web-net.name}'
+          - network: '${resource.web-net.name}'
   web-net:
     type: Cloud.Network
     properties:
