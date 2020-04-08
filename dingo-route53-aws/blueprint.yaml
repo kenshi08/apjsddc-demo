@@ -1,6 +1,6 @@
 formatVersion: 1
 name: dingo-route53-aws
-version: 1.3
+version: 1.4
 inputs:
   os:
     default: ubuntu1604
@@ -32,6 +32,14 @@ inputs:
     title: Please select app name
     description: Please select app name
 resources:
+  pub-net:
+    type: Cloud.Network
+    properties:
+      name: pub-net
+      networkType: existing
+      constraints:
+        - tag: 'env:dev'
+        - tag: 'function:public'
   Route53_Record_1:
     type: Cloud.Service.AWS.Route53.Record
     dependsOn:
@@ -54,7 +62,7 @@ resources:
           instanceProtocol: http
           port: 80
           protocol: http
-      network: '${resource.web-net.name}'
+      network: '${resource["pub-net"].id}'
       instances:
         - '${resource["web-svr"].id}'
       internetFacing: true
@@ -73,18 +81,20 @@ resources:
           - git clone https://github.com/kenshi08/dingo
           - cp -r /dingo/* /var/www/html/
         users:
-          - name: admin
+          - name: apjdemo
             ssh-authorized-keys:
              - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRDoEwuRngIEKVGnmeULwtpt1wNGiJV1qonI8IcCDNo9CLL1sJMui0K7uzP7LPQk2NvJLBBbI6BOcKUr8Z9c5MdLHtklHKFHZT7yR/kZqa34WsEcTn2DT3I0QC89nfapk8DIJ/Uq2TDMB2Ee3SSyWIiBpWJuRhYuw8g6I2pwvd27T0iK8FNelr3AT5yzqF4GdfhosX/6KVPWZmeEDyY/uw45Wl3QQd8Nsssl0FcAc6tl0NXtfns3VSX6EfVpiYcl01BKZW/QpsNH7oN8Q5oWYbSF3s8gYF2qeng/oprCSIOkdCfe8zrP8YMDfOc6QdxXTxfI63vGKAA15mKZfXRKvr kenshi08@me.com
             sudo: ['ALL=(ALL) NOPASSWD:ALL']
             groups: sudo
             shell: /bin/bash
       networks:
-          - network: '${resource.web-net.name}'
+        - network: '${resource["web-net"].id}'
+          assignment: dynamic
   web-net:
     type: Cloud.Network
     properties:
       name: web-net
       networkType: existing
       constraints:
-        - tag: 'function: public'
+        - tag: 'env:dev'
+        - tag: 'function: web'
