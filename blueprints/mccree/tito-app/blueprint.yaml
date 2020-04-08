@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 1.0
+version: 1.1
 inputs:
   application:
     type: string
@@ -55,6 +55,11 @@ resources:
       network: '${resource.public_net.name}'
       instances: '${resource.front-end.id}'
       internetFacing: true
+      tags: 
+        - key: project
+          value: mccree
+        - key: app
+          value: tito-apj
   front-end:
     type: Cloud.Machine
     dependsOn:
