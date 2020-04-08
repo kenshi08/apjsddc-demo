@@ -1,6 +1,6 @@
 formatVersion: 1
-name: basic-1tier-app
-version: 1
+name: dingo-route53-aws
+version: 1.0
 inputs:
   os:
     default: ubuntu
@@ -28,7 +28,7 @@ inputs:
     description: Please select instance size
   name:
     type: string
-    default: neetcloud
+    default: apjdemo
     title: Please select app name
     description: Please select app name
 resources:
