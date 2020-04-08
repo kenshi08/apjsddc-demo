@@ -1,6 +1,6 @@
 formatVersion: 1
 name: dingo-route53-aws
-version: 1.4
+version: 1.5
 inputs:
   os:
     default: ubuntu1604
@@ -31,6 +31,13 @@ inputs:
     default: apjdemo
     title: Please select app name
     description: Please select app name
+  environment:
+    type: string
+    description: Environment
+    default: test
+    enum:
+      - dev
+      - test
 resources:
   pub-net:
     type: Cloud.Network
@@ -38,7 +45,7 @@ resources:
       name: pub-net
       networkType: existing
       constraints:
-        - tag: 'env:dev'
+        - tag: 'env:${input.environment}'
         - tag: 'function:public'
   Route53_Record_1:
     type: Cloud.Service.AWS.Route53.Record
@@ -73,6 +80,7 @@ resources:
       flavor: '${input.size}'
       constraints:
         - tag: 'platform: ${input.platform}'
+        - tag: 'region:${input.environment == "test" ? "sg" : "anz"'
       cloudConfig: |
         packages:
           - apache2
@@ -96,5 +104,5 @@ resources:
       name: web-net
       networkType: existing
       constraints:
-        - tag: 'env:dev'
+        - tag: 'env:${input.environment}'
         - tag: 'function: web'
