@@ -1,0 +1,89 @@
+formatVersion: 1
+name: basic-1tier-app
+version: 1
+inputs:
+  os:
+    default: ubuntu
+    description: Please select operating system
+    enum:
+      - ubuntu1604
+      - centos7
+    type: string
+    title: Please select operating system
+  platform:
+    default: aws
+    type: string
+    enum:
+      - aws
+    title: Please select platform
+    description: Please select platform
+  size:
+    type: string
+    default: small
+    enum:
+      - small
+      - medium
+      - large
+    title: Please select instance size
+    description: Please select instance size
+  name:
+    type: string
+    default: neetcloud
+    title: Please select app name
+    description: Please select app name
+resources:
+  Route53_Record_1:
+    type: Cloud.Service.AWS.Route53.Record
+    dependsOn:
+      - LB
+    properties:
+      name: '${input.name}.vmwapj.com'
+      type: CNAME
+      region: ap-southeast-1
+      account: neetcloud-aws
+      zone_id: Z1DXP5AZ44Z4IY
+      ttl: 300
+      records:
+        - '${resource.LB.address}'
+  LB:
+    type: Cloud.LoadBalancer
+    properties:
+      name: lb
+      routes:
+        - instancePort: 80
+          instanceProtocol: http
+          port: 80
+          protocol: http
+      network: '${resource.Network.name}'
+      instances:
+        - '${resource.Machine.id}'
+      internetFacing: true
+  Machine:
+    type: Cloud.Machine
+    properties:
+      image: '${input.os}'
+      flavor: '${input.size}'
+      constraints:
+        - tag: 'platform: ${input.platform}'
+        - tag: 'region:singapore'
+      cloudConfig: |
+        packages:
+          - apache2
+        runcmd:
+          - ufw allow 'Apache Full'
+          - git clone https://github.com/kenshi08/dingo
+          - cp -r /dingo/* /var/www/html/
+        users:
+          - name: admin
+            ssh-authorized-keys:
+             - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRDoEwuRngIEKVGnmeULwtpt1wNGiJV1qonI8IcCDNo9CLL1sJMui0K7uzP7LPQk2NvJLBBbI6BOcKUr8Z9c5MdLHtklHKFHZT7yR/kZqa34WsEcTn2DT3I0QC89nfapk8DIJ/Uq2TDMB2Ee3SSyWIiBpWJuRhYuw8g6I2pwvd27T0iK8FNelr3AT5yzqF4GdfhosX/6KVPWZmeEDyY/uw45Wl3QQd8Nsssl0FcAc6tl0NXtfns3VSX6EfVpiYcl01BKZW/QpsNH7oN8Q5oWYbSF3s8gYF2qeng/oprCSIOkdCfe8zrP8YMDfOc6QdxXTxfI63vGKAA15mKZfXRKvr kenshi08@me.com
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+      networks:
+        - name: '${resource.Network.name}'
+  Network:
+    type: Cloud.Network
+    properties:
+      name: web
+      networkType: public
