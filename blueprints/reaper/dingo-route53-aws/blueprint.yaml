@@ -80,7 +80,7 @@ resources:
       flavor: '${input.size}'
       constraints:
         - tag: 'platform: ${input.platform}'
-        - tag: 'region:${input.environment == "test" ? "sg" : "anz"'
+        - tag: '${"region": + (input.environment == "test" ? "sg") : (input.environment == "dev" ? "anz" : "")}'
       cloudConfig: |
         packages:
           - apache2
