@@ -1,0 +1,59 @@
+formatVersion: 1
+name: ansible-iaas
+version: 1.0
+inputs:
+  environment:
+    type: string
+    default: test
+    enum:
+      - test
+      - dev
+  platform:
+    type: string
+    default: aws
+    enum:
+      - aws
+      - azure
+      - gcp
+      - vsphere
+  sshkeys:
+    type: string
+    default: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRDoEwuRngIEKVGnmeULwtpt1wNGiJV1qonI8IcCDNo9CLL1sJMui0K7uzP7LPQk2NvJLBBbI6BOcKUr8Z9c5MdLHtklHKFHZT7yR/kZqa34WsEcTn2DT3I0QC89nfapk8DIJ/Uq2TDMB2Ee3SSyWIiBpWJuRhYuw8g6I2pwvd27T0iK8FNelr3AT5yzqF4GdfhosX/6KVPWZmeEDyY/uw45Wl3QQd8Nsssl0FcAc6tl0NXtfns3VSX6EfVpiYcl01BKZW/QpsNH7oN8Q5oWYbSF3s8gYF2qeng/oprCSIOkdCfe8zrP8YMDfOc6QdxXTxfI63vGKAA15mKZfXRKvr kenshi08@me.com
+    readOnly: true
+resources:
+  apache:
+    type: Cloud.Ansible
+    properties:
+      host: '${resource["ansible-test"].*}'
+      osType: linux
+      account: apjdemo-ansible
+      username: ubuntu
+      privateKeyFile: /home/keys/id_rsa
+      maxConnectionRetries: 20
+      inventoryFile: /etc/ansible/hosts
+      groups:
+        - vrac-servers
+      playbooks:
+        provision:
+          - /home/playbooks/web.yml
+  ansible-test:
+    type: Cloud.Machine
+    properties:
+      image: ubuntu1604
+      flavor: small
+      remoteAccess:
+        username: ubuntu
+        authentication: publicPrivateKey
+        sshKey: '${input.sshkeys}'
+      networks:
+        - network: '${resource["demo-net"].id}'
+      constraints:
+        - tag: 'platform:${input.platform}'
+        - tag: 'env:${input.environment}'
+  demo-net:
+    type: Cloud.Network
+    properties:
+      networkType: existing
+      name: demo-net
+      constraints:
+        - tag: 'function:public'
