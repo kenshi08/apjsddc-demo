@@ -1,0 +1,36 @@
+formatVersion: 1
+name: aws-rds
+version: 1.0
+inputs: {}
+resources:
+  RDS_Cluster_1:
+    type: Cloud.Service.AWS.RDS.Cluster
+    dependsOn:
+      - rds-net
+    properties:
+      region: ap-southeast-2
+      account: apj-sddc-aws
+      master_password: VMware1!
+      master_username: apjdemo
+      availability_zones:
+        - ap-southeast-2a
+        - ap-southeast-2c
+  rds-net:
+    type: Cloud.Network
+    properties:
+      name: rds-net
+      networkType: existing
+  RDS_DB_3:
+    type: Cloud.Service.AWS.RDS.Cluster.Instance
+    dependsOn:
+      - rds-net
+    properties:
+      count: 2
+      identifier_prefix: multi-az-
+      region: ap-southeast-2
+      account: apj-sddc-aws
+      allocated_storage: 20
+      instance_class: db.t2.small
+      name: mydb
+      cluster_identifier: '${resource.RDS_Cluster_1.id}'
+      multi_az: true
