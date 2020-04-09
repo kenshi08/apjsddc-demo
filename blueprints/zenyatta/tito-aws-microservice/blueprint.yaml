@@ -207,8 +207,7 @@ resources:
           instanceProtocol: http
           instancePort: 80
       network: '${resource.Public_Nw.name}'
-      instances:
-        - '${resource.Front_end.id}'
+      instances: '${resource.Front_end[*].id}'
       internetFacing: true
   API_Gw_Deployment:
     type: Cloud.Service.AWS.API.Gateway.Deployment
