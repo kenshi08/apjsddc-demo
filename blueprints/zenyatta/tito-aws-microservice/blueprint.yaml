@@ -1,7 +1,6 @@
 formatVersion: 1
 name: tito-aws-microservice
-version: 1.0
-description: Testing
+version: 1.1
 inputs:
   username:
     type: string
@@ -366,7 +365,7 @@ resources:
       account: apj-sddc-aws
       instance_class: db.t2.small
       cluster_identifier: '${resource.RDS_Cluster[0].id}'
-      availability_zone: '${input.region}a'
+      availability_zone: ap-southeast-1a
       publicly_accessible: true
       db_subnet_group_name: neetcloud-rds-sg
   RDS_Cluster:
