@@ -106,7 +106,7 @@ resources:
           - sudo cd /home/ubuntu/.ssh/
           - ssh -o StrictHostKeyChecking=no -T git@github.com
           - git clone git@github.com:kenshi08/saasops.git
-          - cd /saasops/Tito/asset/Deployment/CloudAssembly/titodb
+          - cd /tmp/saasops/Tito/asset/Deployment/CloudAssembly/titodb
           - chmod u+x *.sh
           - [ /tmp/saasops/Tito/asset/Deployment/CloudAssembly/titodb/tito_as.sh, ${resource.DB.address} ]
           - sed -i -e 's|API_GW|https://${resource.API_Gateway_Rest.id}.execute-api.${input.region}.amazonaws.com/${input.username}|g' /var/www/html/index.php
