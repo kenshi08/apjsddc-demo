@@ -77,7 +77,7 @@ resources:
       - API_Gw_Deployment
     count: '${input.FrontEndNumber}'
     properties:
-      image: centos7
+      image: ubuntu1604
       count: '${input.cluster-size}'
       flavor: small
       remoteAccess:
@@ -147,7 +147,7 @@ resources:
   DB:
     type: Cloud.Machine
     properties:
-      image: centos7
+      image: ubuntu1604
       flavor: small
       networks:
         - name: '${resource.Public_Nw.name}'
