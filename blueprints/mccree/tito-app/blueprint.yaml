@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 1.1
+version: 1.2
 inputs:
   application:
     type: string
@@ -92,18 +92,10 @@ resources:
          - git
         runcmd:
          - sudo apt install apache2 --assume-yes
-         - sudo git clone https://github.com/gnemkiy/testcreds.git
          - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python-pip python-dev --assume-yes
          - sudo apt install git php libapache2-mod-php php-mysql php-curl --assume-yes
          - su - ubuntu
-         - eval "$(ssh-agent -s)"
-         - sudo cd /home/ubuntu/.ssh/
-         - sudo cp /testcreds/sample/id_rsa /home/ubuntu/.ssh/.
-         - sudo chmod 400 /home/ubuntu/.ssh/id_rsa
-         - eval "$(ssh-agent -s)"
-         - ssh-add -k /home/ubuntu/.ssh/id_rsa
-         - ssh -o StrictHostKeyChecking=no -T git@github.com
-         - git clone git@github.com:kenshi08/saasops.git
+         - git clone https://github.com/kenshi08/apj-tito.git
          - cd /var/www/html
          - sudo cp -r /saasops/Tito .
          - sudo chmod +x Tito/asset/Deployment/CloudAssembly/apache/*
