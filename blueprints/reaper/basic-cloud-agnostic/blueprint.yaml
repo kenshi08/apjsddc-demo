@@ -26,14 +26,6 @@ inputs:
     maximum: 3
     minimum: 1
     title: No. of instances
-  network:
-    title: Network Type
-    description: This value controls the network of choice
-    type: string
-    enum:
-      - public
-      - private
-    default: public
   platform:
     title: Platform
     description: This value controls the platform of choice
@@ -73,6 +65,5 @@ resources:
       name: server_net
       networkType: existing
       constraints:
-        - tag: 'function:${input.network}'
         - tag: 'platform:${input.platform}'
         - tag: 'env:${input.environment}'
