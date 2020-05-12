@@ -24,9 +24,9 @@ inputs:
     type: string
     description: Select target cloud
     enum:
-      - 'platform:aws'
-      - 'platform:azure'
-      - 'platform:vsphere'
+      - 'aws'
+      - 'azure'
+      - 'vsphere'
   azureresourcegrp:
     type: string
     description: Azure Resource Group
@@ -63,10 +63,11 @@ resources:
         authentication: publicPrivateKey
         sshKey: '${input.sshkey}'
       constraints:
-        - tag: '${input.platform}'
+        - tag: 'platform:${input.platform}'
       networks:
         - name: '${resource.pub_net.name}'
           network: '${resource.pub_net.id}'
+          assignment: '${input.platform == "vsphere" ? "static" : "dynamic"}'
       cloudConfig: |
         #cloud-config
         users:
@@ -82,7 +83,7 @@ resources:
     type: Cloud.Network
     properties:
       name: pub_net
-      networkType: public
+      networkType: existing
       constraints:
         - tag: 'env:${input.environment}'
         - tag: 'function:mgmt'
