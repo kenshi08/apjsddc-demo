@@ -1,6 +1,6 @@
 formatVersion: 1
 name: packer-imagebuilder
-version: 4.2
+version: 4.3
 inputs:
   vcenter_server:
     type: string
@@ -94,11 +94,12 @@ resources:
         - tag: 'platform:vsphere'
       networks:
         - network: '${resource.mgmt-net.id}'
+          assignment: static
   mgmt-net:
     type: Cloud.Network
     properties:
       name: mgmt-net
       networkType: existing
       constraints:
-        - tag: 'env:test'
+        - tag: 'env:dev'
         - tag: 'function:mgmt'
