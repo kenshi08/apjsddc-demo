@@ -1,6 +1,6 @@
 formatVersion: 1
 name: dingo-multicloud
-version: 1.0
+version: 1.1
 inputs:
   os:
     default: ubuntu1604
@@ -67,3 +67,4 @@ resources:
       networkType: existing
       constraints: 
         - tag: 'env:${input.environment}'
+        - tag: 'function:public'
