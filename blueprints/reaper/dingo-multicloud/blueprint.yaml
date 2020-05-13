@@ -1,0 +1,69 @@
+formatVersion: 1
+name: dingo-multicloud
+version: 1.0
+inputs:
+  os:
+    default: ubuntu1604
+    description: Please select operating system
+    enum:
+      - ubuntu1604
+      - ubuntu1804
+      - centos7
+    type: string
+    title: Please select operating system
+  platform:
+    default: aws
+    type: string
+    enum:
+      - aws
+      - vsphere
+      - azure
+    title: Please select platform
+    description: Please select platform
+  size:
+    type: string
+    default: small
+    enum:
+      - small
+      - medium
+      - large
+    title: Please select instance size
+    description: Please select instane size
+  environment:
+    type: string
+    default: dev
+    enum: 
+      - dev
+      - test
+resources:
+  dingo-svr:
+    type: Cloud.Machine
+    properties:
+      image: '${input.os}'
+      flavor: '${input.size}'
+      constraints:
+        - tag: 'platform: ${input.platform}'
+      cloudConfig: |
+        packages:
+          - apache2
+        runcmd:
+          - ufw allow 'Apache Full'
+          - git clone https://github.com/kenshi08/dingo
+          - cp -r /dingo/* /var/www/html/
+        users:
+          - name: clement
+            ssh-authorized-keys:
+             - ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEApObvijLig4hunCYxM9ed+luR+6RfsBVygfs3LYZ1xIXGcpkfxByWW3LhZtxUsHa0MHR70pEkR3LuN1zkd0L2zIhwS6i6mDHlxV0mJsOJzs+P0ROu1nhZSS/0eUKEYVc/42QvMTjLXvxaT8e/qWoYFi3EA5iBptbsyjhXgoSeI9LkobsRktDjIUn/X0V5uzK4B7Li/tmkAZ+ASLC1OsgOou+L5OSaAL4nCBWOTRH8SRukDZ44ehrFFx19zFHUcvPtV11ntAN+UPPMDxoefexgZeNVHeeuJzzOA/1i2nNH0yDvJ0nXx3O8A3QksX5pJn5vSrrgL0/adYu9vjGVxSAG4Q==
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+      networks:
+        - network: '${resource["dingo-net"].id}'
+          assignment: '${input.platform == "vsphere" ? "static" : "dynamic"}'
+  dingo-net:
+    type: Cloud.Network
+    properties:
+      name: web-net
+      networkType: existing
+      constraints: 
+        - tag: 'env:${input.environment}'
