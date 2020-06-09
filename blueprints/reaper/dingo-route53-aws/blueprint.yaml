@@ -1,12 +1,13 @@
 formatVersion: 1
 name: dingo-route53-aws
-version: 1.9
+version: 2.0
 inputs:
   os:
     default: ubuntu1604
     description: Please select operating system
     enum:
       - ubuntu1604
+      - ubuntu1804
       - centos7
     type: string
     title: Please select operating system
