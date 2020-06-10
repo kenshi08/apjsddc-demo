@@ -8,7 +8,6 @@ inputs:
     type: string
     enum:
       - ubuntu1604
-      - ubuntu1804
       - centos7
     default: ubuntu1604
   size:
