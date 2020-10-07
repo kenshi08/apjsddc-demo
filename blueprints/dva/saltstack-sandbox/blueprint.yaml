@@ -1,0 +1,112 @@
+formatVersion: 1
+name: saltstack-sandbox
+version: 1.0
+inputs:
+  platform:
+    type: string
+    enum:
+      - aws
+      - vsphere
+    default: aws
+    title: Cloud Platform
+  user:
+    type: string
+    title: Username for SSH
+    description: The username you would like to have for the installation.
+    default: demouser
+  password:
+    type: string
+    pattern: '[a-z0-9A-Z@#$]+'
+    encrypted: true
+    default: VMware1!
+    title: Admin Account Password
+    description: The password you would like to use for the System.
+  sshkey:
+    type: string
+    description: VM SSH Key
+    default: ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAgyxCZzN5914IazDw3N82CzPk8Llx2a2AfFThfDNQvoICxVkjlG60/jwCwpOgRvmGFoGvxBrXLWWQZdjbpUbx0+CoeFFqS8kgEAe8vzCM2l/V0Y8KmkjFH0ZF/yaucNPWbbXKCIOaEGk9AeJMctPsdK6wO5L8YnUOdftdJnnNQJi63FQYh7EeqkNE9rJCEU6v6N9+78O5Ui+XmYl/mqXyE0EguiDEZU3mXe7g1Twqbwl8e29ItN2Yo1vm6YV4S1nI+jYu2SC3xAcAbuLKeig1X1L4w57hyzPqbSaxGBp7yt48AM0uKioPnp3fGzAtAad8nq79hpQqwrLuSUUeIYqL7Q== apj-anzcmlab
+    encrypted: true
+  minioncount:
+    type: integer
+    title: '# Minions'
+    minimum: 1
+    maximum: 8
+    default: '1'
+resources:
+  Salt_Minion:
+    type: Cloud.Machine
+    dependsOn:
+      - Salt_Master
+    properties:
+      image: ubuntu1804
+      flavor: medium
+      count: '${input.minioncount}'
+      constraints:
+        - tag: 'platform:${input.platform}'
+      cloudConfig: |
+        #cloud-config
+        #log all cloud-init process output (info & errors) to a logfile
+        output: {all: ">> /var/log/cloud-init-output.log"}
+        #hostname: salt-minion
+        users:
+          - name: ${input.user}
+            ssh-authorized-keys:
+              - ${input.sshkey}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+        runcmd:
+          - PASS=${input.password}
+          - USER=${input.user}
+          - echo $USER:$PASS | /usr/sbin/chpasswd
+          - sed -i -e '$aAllowUsers ${input.user}' /etc/ssh/sshd_config
+          - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          - service ssh reload
+          - sudo curl -L https://bootstrap.saltstack.com -o install_salt.sh
+          - sudo sh install_salt.sh -A ${resource.Salt_Master.address}
+      networks:
+        - network: '${resource.Cloud_Network_1.id}'
+          assignment: '${input.platform == "platform:vsphere" ? "static" : "dynamic"}'
+  Salt_Master:
+    type: Cloud.Machine
+    properties:
+      image: ubuntu1804
+      flavor: medium
+      constraints:
+        - tag: 'platform:${input.platform}'
+      cloudConfig: |
+        #cloud-config
+        #log all cloud-init process output (info & errors) to a logfile
+        output: {all: ">> /var/log/cloud-init-output.log"}
+        repo_update: true
+        repo_upgrade: all
+        #hostname: salt-master
+        users:
+          - name: ${input.user}
+            ssh-authorized-keys:
+              - ${input.sshkey}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+        runcmd:
+          - PASS=${input.password}
+          - USER=${input.user}
+          - echo $USER:$PASS | /usr/sbin/chpasswd
+          - sed -i -e '$aAllowUsers ${input.user}' /etc/ssh/sshd_config
+          - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          - service ssh reload
+          - sudo curl -L https://bootstrap.saltstack.com -o install_salt.sh
+          - sudo sh install_salt.sh -M
+      networks:
+        - network: '${resource.Cloud_Network_1.id}'
+          assignment: '${input.platform == "platform:vsphere" ? "static" : "dynamic"}'
+      remoteAccess:
+        authentication: publicPrivateKey
+        sshKey: '${input.sshkey}'
+  Cloud_Network_1:
+    type: Cloud.Network
+    properties:
+      constraints:
+        - tag: 'env:dev'
+        - tag: 'function:mgmt'
+      networkType: existing
