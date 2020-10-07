@@ -1,6 +1,6 @@
 formatVersion: 1
 name: basic-cloud-agnostic
-version: 1.5
+version: 1.6
 inputs:
   os:
     title: Operating System
@@ -53,7 +53,7 @@ resources:
       osType: '${input.os}'
       count: '${input.count}'
       networks:
-        - name: '${Cloud_Network_1.name}'
+        - network: '${resource.Cloud_Network_1.id}'
           assignment: '${input.platform == "vsphere" ? "static" : "dynamic"}'
       constraints:
         - tag: 'platform:${input.platform}'
