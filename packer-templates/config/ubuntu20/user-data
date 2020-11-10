@@ -1,0 +1,19 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: packer-ubuntu2004-template
+    password: '8ed1dd8e4d324ae80d1581221399875de855156b55086dfeb5854a8132c5909b3a4a7aa628497dfe4d7b7babf7ff9c7b119cfc231b05544a3d685f6c721d7c7e'
+    username: apjdemo
+  network:
+    network:
+      version: 2
+      ethernets:
+        ens33:
+          dhcp4: true
+          dhcp-identifier: mac
+  ssh:
+    install-server: true
+  late-commands:
+    - sed -i 's/^#*\(send dhcp-client-identifier\).*$/\1 = hardware;/' /target/etc/dhcp/dhclient.conf
+    - 'sed -i "s/dhcp4: true/&\n      dhcp-identifier: mac/" /target/etc/netplan/00-installer-config.yaml'
