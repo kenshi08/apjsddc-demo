@@ -64,14 +64,14 @@ resources:
         packages:
         - git
         users:
-          - name: dockeradmin
+          - name: apjdemo
             ssh-authorized-keys:
             - ${input.sshkey}
             sudo: ['ALL=(ALL) NOPASSWD:ALL']
             groups: sudo
             shell: /bin/bash
         runcmd:
-          - sed -i -e '$aAllowUsers dockeradmin' /etc/ssh/sshd_config
+          - sed -i -e '$aAllowUsers apjdemo' /etc/ssh/sshd_config
           - service ssh reload
           - curl -fsSL https://get.docker.com -o get-docker.sh; sh get-docker.sh
           - systemctl daemon-reload
