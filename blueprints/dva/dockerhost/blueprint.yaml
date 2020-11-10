@@ -1,6 +1,6 @@
 formatVersion: 1
 name: dockerhost
-version: 1.0
+version: 1.1
 inputs:
   application:
     type: string
@@ -57,6 +57,8 @@ resources:
         - tag: 'platform:${input.platform}'
       cloudConfig: |
         #cloud-config
+        # log all cloud-init process output (info & errors) to a logfile
+        output: {all: ">> /var/log/cloud-init-output.log"}
         repo_update: true
         repo_upgrade: all
         packages:
