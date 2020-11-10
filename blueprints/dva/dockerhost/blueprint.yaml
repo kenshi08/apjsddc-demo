@@ -1,6 +1,6 @@
 formatVersion: 1
 name: dockerhost
-version: 1.1
+version: 1.2
 inputs:
   application:
     type: string
@@ -13,6 +13,7 @@ inputs:
     enum:
       - dev
       - test
+      - prod
   platform:
     type: string
     description: Select target cloud
