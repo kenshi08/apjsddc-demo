@@ -1,6 +1,6 @@
 formatVersion: 1
 name: dockerhost
-version: 1.1
+version: 1.2
 inputs:
   application:
     type: string
@@ -42,7 +42,6 @@ resources:
       networkType: existing
       constraints:
         - tag: 'function:mgmt'
-        - tag: 'env:${input.environment}'
   docker:
     type: Cloud.Machine
     properties:
@@ -55,6 +54,7 @@ resources:
       resourceGroupName: '${input.azureresourcegrp}'
       constraints:
         - tag: 'platform:${input.platform}'
+        - tag: 'env:${input.environment}'
       cloudConfig: |
         #cloud-config
         # log all cloud-init process output (info & errors) to a logfile
