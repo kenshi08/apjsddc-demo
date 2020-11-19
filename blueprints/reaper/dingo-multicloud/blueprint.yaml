@@ -1,6 +1,6 @@
 formatVersion: 1
 name: dingo-multicloud
-version: 1.2
+version: 1.3
 inputs:
   os:
     default: ubuntu1604
@@ -50,7 +50,7 @@ resources:
         runcmd:
           - ufw allow 'Apache Full'
           - git clone https://github.com/kenshi08/dingo
-          - cp -r /dingo/* /var/www/html/
+          - cp -r /dingo/src/* /var/www/html/
         users:
           - name: clement
             ssh-authorized-keys:

@@ -1,6 +1,6 @@
 formatVersion: 1
 name: dingo-route53-aws
-version: 2.0
+version: 2.1
 inputs:
   os:
     default: ubuntu1604
@@ -83,7 +83,7 @@ resources:
         runcmd:
           - ufw allow 'Apache Full'
           - git clone https://github.com/kenshi08/dingo
-          - cp -r /dingo/* /var/www/html/
+          - cp -r /dingo/src/* /var/www/html/
         users:
           - name: apjdemo
             ssh-authorized-keys:
