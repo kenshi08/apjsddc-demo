@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-aws-microservice
-version: 1.6
+version: 1.7
 inputs:
   username:
     type: string
