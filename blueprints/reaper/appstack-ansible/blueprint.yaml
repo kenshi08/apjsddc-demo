@@ -1,0 +1,85 @@
+formatVersion: 1
+name: appstack-ansible
+version: 1.0
+inputs:
+  ansible_group:
+    type: string
+    description: Ansible Groups
+    default: WebServers
+    enum:
+      - WebServers
+      - AppServers
+      - DBServers
+  playbooks:
+    type: string
+    description: Ansible Playbooks
+    default: apache
+    enum:
+      - apache
+      - nginx
+      - lampstack
+      - lempstack
+  sshkey:
+    type: string
+    description: Instance SSH Key
+    default: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhkqyKhmvntyo5Tn/VDLExWxpiwZDBN1L9JH5Hz38zYZHsOVwggIPZ8705nDMY6xbROcVFXJnA6xoApdvR16D2Nb7F8z6qbxZcigIzYnHv73uRTr5vm7GBi2/sIrJLJvWTXVCF/X4NAyAloOWOu/V8iUao5rMQ5JaiPNsLAfbdkEnhTP8e5VKpnoWDuOq5VyISk9qOKhjAgKXz/fs7F2XHjmor4ahWx1bge/ZYnGqNCNZMAVogbgsiwuOZ9gDMyhFUd6Quq06RXQEBi1s8Cm/HENHlhlTKtaxM7ViMqlMBHdOcCM94mSOMR46IwI9he03Wyd3B0phSZMw0h5t7a3XD
+    encrypted: true
+    readonly: true
+resources:
+  playbook:
+    type: Cloud.Ansible
+    properties:
+      host: '${resource["ansible-svr"].*}'
+      osType: linux
+      account: neetcloud-ansible
+      username: apjdemo
+      privateKeyFile: /home/apjdemo/.ssh/id_rsa
+      inventoryFile: /etc/ansible/hosts
+      maxConnectionRetries: 20
+      groups:
+        - '${input.ansible_group}'
+      playbooks:
+        provision:
+          - '/home/playbooks/${input.playbooks}/playbook.yml'
+  ansible-svr:
+    type: Cloud.Machine
+    properties:
+      image: ubuntu1804
+      flavor: small
+      remoteAccess:
+        username: apjdemo
+        authentication: publicPrivateKey
+        sshKey: '${input.sshkey}'
+      networks:
+        - network: '${resource["workload-net"].id}'
+      constraints:
+        - tag: 'platform:vsphere'
+        - tag: 'env:prod'
+      cloudConfigSettings:
+        phoneHomeFailOnTimeout: true
+        phoneHomeShouldWait: true
+        phoneHomeTimeouSeconds: 600
+      cloudConfig: |
+        #cloud-config
+        # log all cloud-init process output (info & errors) to a logfile
+        output: {all: ">> /var/log/cloud-init-output.log"}
+        repo_update: true
+        repo_upgrade: all
+        packages:
+        - git
+        users:
+          - name: apjdemo
+            ssh-authorized-keys:
+            - ${input.sshkey}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+        runcmd:
+          - sed -i -e '$aAllowUsers apjdemo' /etc/ssh/sshd_config
+          - service ssh reload
+  workload-net:
+    type: Cloud.Network
+    properties:
+      networkType: existing
+      constraints:
+        - tag: 'function:mgmt'
