@@ -61,6 +61,10 @@ resources:
       constraints:
         - tag: 'platform:vsphere'
         - tag: 'env:${input.environment}'
+      remoteAccess:
+        username: ${input.user}
+        authentication: publicPrivateKey
+        sshKey: '${input.sshkey}'
       cloudConfig: |
         #cloud-config
         repo_update: true
