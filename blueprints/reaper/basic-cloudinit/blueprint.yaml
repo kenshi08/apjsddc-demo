@@ -73,6 +73,7 @@ resources:
         - tag: 'env:test'
       networks:
         - network: '${resource.demo-net.id}'
+        assignment: '${input.platform == "vsphere" ? "static" : "dynamic"}'
       cloudConfig: |
         # log all cloud-init process output (info & errors) to a logfile
         output: {all: ">> /var/log/cloud-init-output.log"}

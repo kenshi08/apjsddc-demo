@@ -1,6 +1,6 @@
 formatVersion: 1
 name: basic-cloud-agnostic
-version: 1.6
+version: 1.7
 inputs:
   os:
     title: Operating System
@@ -8,6 +8,7 @@ inputs:
     type: string
     enum:
       - ubuntu1604
+      - ubuntu1804
       - centos7
     default: ubuntu1604
   size:
@@ -22,7 +23,7 @@ inputs:
   count:
     type: integer
     default: 1
-    maximum: 3
+    maximum: 5
     minimum: 1
     title: No. of instances
   platform:
@@ -41,6 +42,16 @@ inputs:
     enum:
       - dev
       - test
+      - prod
+  function:
+    type: string
+    description: Workload Function
+    default: mgmt
+    enum:
+      - mgmt
+      - app
+      - web
+      - db
 resources:
   agnostic-svr:
     type: Cloud.Machine
@@ -50,19 +61,17 @@ resources:
           key: '${env.requestedBy}'
       image: '${input.os}'
       flavor: '${input.size}'
-      osType: '${input.os}'
       count: '${input.count}'
       networks:
-        - network: '${resource.Cloud_Network_1.id}'
+        - network: '${resource.agnostic_net.id}'
           assignment: '${input.platform == "vsphere" ? "static" : "dynamic"}'
       constraints:
         - tag: 'platform:${input.platform}'
         - tag: 'env:${input.environment}'
-  Cloud_Network_1:
+  agnostic_net:
     type: Cloud.Network
     properties:
       name: server_net
       networkType: existing
       constraints:
-        - tag: 'platform:${input.platform}'
-        - tag: 'env:${input.environment}'
+        - tag: 'function:${input.function}'
