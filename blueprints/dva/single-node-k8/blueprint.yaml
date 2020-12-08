@@ -1,6 +1,6 @@
 formatVersion: 1
 name: single-node-k8
-version: 1.0
+version: 1.1
 inputs:
   flavor:
     type: string
@@ -41,6 +41,17 @@ inputs:
       - prod
       - dev
       - test
+  user:
+    type: string
+    title: Username
+    description: Username for the OS account
+    default: apjdemo
+  sshkey:
+    type: string
+    description: Instance SSH Key
+    default: ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEA831LifYON4t7lWDRH/vPcTMRG9w/4rMBMLBRs6MIRnq2ch4KJoDKwyWTcYrDLmKUEPsaVzGnznL5zWxzBLL8oaKE5gMPrzWQUVMn7KtMMKyduLuHy50N4x+AY4cEhhch7mLBFOMeeGA4jTJTzbbqZox9zST0BrhNaf+cdqc+jpM11KTOjAP8961xhfTh6aRcBZadnKqBzA+RJ8hzzsAQSuSShaB+t/i2zkfMTzsm0mXlSmP9eFDADcra5e0uFgedCfxITqgcZIu8deHUc5cqIOS+NB+4qbGcgLeEtpBtHJ1Y402+mwVU4iDJwmC+KHXd8jlydLKVaivVhOZmprh/Cw==
+    encrypted: true
+    readonly: true
 resources:
   k8s_master:
     type: Cloud.Machine
@@ -57,6 +68,13 @@ resources:
         packages:
          - wget
          - sshpass
+        users:
+          - name: '${input.user}'
+            ssh-authorized-keys:
+            - ${input.sshkey}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
         write_files:
         - content: |
             node_ip=$(ip route get 8.8.8.8 | awk -F"src " 'NR==1{split($2,a," ");print a[1]}')
@@ -99,6 +117,8 @@ resources:
               namespace: kubernetes-dashboard
           path: /etc/kubernetes/admin-user.yaml
         runcmd:
+          - sed -i -e '$aAllowUsers ${input.user}' /etc/ssh/sshd_config
+          - service ssh reload
           - chmod +x /root/checkhostname.sh
           - sudo bash /root/checkhostname.sh
           - echo root:vmwarek8s|sudo chpasswd
