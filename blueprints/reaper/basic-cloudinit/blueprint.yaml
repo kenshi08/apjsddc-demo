@@ -1,7 +1,7 @@
 formatVersion: 1
 name: basic-cloudinit
-version: 1.4
-inputs: 
+version: 1.5
+inputs:
   os:
     title: Operating System
     description: This value controls the operating system to which your server will be based on
@@ -65,14 +65,14 @@ resources:
       image: ubuntu1604
       flavor: small
       remoteAccess:
-        username: ${input.user}
+        username: '${input.user}'
         authentication: publicPrivateKey
         sshKey: '${input.sshkey}'
       constraints:
-        - tag: 'platform:aws'
-        - tag: 'env:test'
+        - tag: 'platform:${input.platform}'
+        - tag: 'env:${input.environment}'
       networks:
-        - network: '${resource.demo-net.id}'
+        - network: '${resource["demo-net"].id}'
           assignment: '${input.platform == "vsphere" ? "static" : "dynamic"}'
       cloudConfig: |
         # log all cloud-init process output (info & errors) to a logfile
