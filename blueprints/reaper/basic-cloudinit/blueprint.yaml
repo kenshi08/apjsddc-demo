@@ -44,10 +44,15 @@ inputs:
       - dev
       - test
       - prod
+  user:
+    type: string
+    title: Username
+    description: Username for the OS account
+    default: apjdemo
   sshkey:
     type: string
     description: Instance SSH Key
-    default: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhkqyKhmvntyo5Tn/VDLExWxpiwZDBN1L9JH5Hz38zYZHsOVwggIPZ8705nDMY6xbROcVFXJnA6xoApdvR16D2Nb7F8z6qbxZcigIzYnHv73uRTr5vm7GBi2/sIrJLJvWTXVCF/X4NAyAloOWOu/V8iUao5rMQ5JaiPNsLAfbdkEnhTP8e5VKpnoWDuOq5VyISk9qOKhjAgKXz/fs7F2XHjmor4ahWx1bge/ZYnGqNCNZMAVogbgsiwuOZ9gDMyhFUd6Quq06RXQEBi1s8Cm/HENHlhlTKtaxM7ViMqlMBHdOcCM94mSOMR46IwI9he03Wyd3B0phSZMw0h5t7a3XD
+    default: ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEA831LifYON4t7lWDRH/vPcTMRG9w/4rMBMLBRs6MIRnq2ch4KJoDKwyWTcYrDLmKUEPsaVzGnznL5zWxzBLL8oaKE5gMPrzWQUVMn7KtMMKyduLuHy50N4x+AY4cEhhch7mLBFOMeeGA4jTJTzbbqZox9zST0BrhNaf+cdqc+jpM11KTOjAP8961xhfTh6aRcBZadnKqBzA+RJ8hzzsAQSuSShaB+t/i2zkfMTzsm0mXlSmP9eFDADcra5e0uFgedCfxITqgcZIu8deHUc5cqIOS+NB+4qbGcgLeEtpBtHJ1Y402+mwVU4iDJwmC+KHXd8jlydLKVaivVhOZmprh/Cw==
     encrypted: true
     readonly: true
 resources:
@@ -59,6 +64,10 @@ resources:
           key: '${env.requestedBy}'
       image: ubuntu1604
       flavor: small
+      remoteAccess:
+        username: ${input.user}
+        authentication: publicPrivateKey
+        sshKey: '${input.sshkey}'
       constraints:
         - tag: 'platform:aws'
         - tag: 'env:test'
@@ -73,12 +82,15 @@ resources:
         packages:
         – python
         users:
-          - name: apjdemo
+          - name: '${input.user}'
             ssh-authorized-keys:
             - ${input.sshkey}
             sudo: ['ALL=(ALL) NOPASSWD:ALL']
             groups: sudo
             shell: /bin/bash
+        runcmd:
+          - sed -i -e '$aAllowUsers ${input.user}' /etc/ssh/sshd_config
+          - service ssh reload
   demo-net:
     type: Cloud.Network
     properties:
