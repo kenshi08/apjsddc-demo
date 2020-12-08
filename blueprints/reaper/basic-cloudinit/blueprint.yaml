@@ -1,6 +1,6 @@
 formatVersion: 1
 name: basic-cloudinit
-version: 1.5
+version: 2.0
 inputs:
   os:
     title: Operating System
@@ -62,8 +62,8 @@ resources:
       tags:
         - value: owner
           key: '${env.requestedBy}'
-      image: ubuntu1604
-      flavor: small
+      image: '${input.os}'
+      flavor: '${input.size}'
       remoteAccess:
         username: '${input.user}'
         authentication: publicPrivateKey
