@@ -1,8 +1,8 @@
 formatVersion: 1
-name: single-node-k8
+name: multi-node-k8
 version: 1.0
 inputs:
-  flavor:
+  master_flavor:
     type: string
     enum:
       - small
@@ -10,7 +10,23 @@ inputs:
       - large
     description: Size of Master node
     title: Size of Master node
+    default: small
+  node_flavor:
+    type: string
+    enum:
+      - small
+      - medium
+      - large
+    description: Size of Worker node
+    title: Size of Worker node
     default: medium
+  no_of_nodes:
+    type: integer
+    description: Number of Worker nodes
+    title: Number of Worker nodes
+    default: 2
+    minimum: 1
+    maximum: 4
   version:
     type: string
     enum:
@@ -42,16 +58,61 @@ inputs:
       - dev
       - test
 resources:
-  k8s_master:
+  k8s_node:
     type: Cloud.Machine
     properties:
+      name: k8s_node
+      count: '${input.no_of_nodes}'
       image: ubuntu1804
-      flavor: '${input.flavor}'
+      flavor: '${input.node_flavor}'
+      cloudConfig: |
+        #cloud-init
+        repo_update: true
+        repo_upgrade: all
+        packages:
+         - wget
+         - sshpass
+        write_files:
+        - content: |
+            node_ip=$(ip route get 8.8.8.8 | awk -F"src " 'NR==1{split($2,a," ");print a[1]}')
+            host_name_short=$(hostname)
+            host_name_long=$(hostname -f)
+            echo "$node_ip    $host_name_long $host_name_short" > /root/node.txt
+          path: /root/checkhostname.sh
+        runcmd:
+          - chmod +x /root/checkhostname.sh
+          - sudo bash /root/checkhostname.sh
+          - echo root:vmwarek8s|sudo chpasswd
+          - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+          - sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+          - service sshd restart
+          - apt-get update -y
+          - apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+          - sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+          - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          - apt-get update -y
+          - apt-get install -y docker-ce=$(apt-cache madison docker-ce | grep 18.09 | head -1 | awk '{print $3}')
+          - sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+          - echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+          - apt-get update -y
+          - apt-get install -y kubeadm=${input.version} kubectl=${input.version} kubelet=${input.version} kubernetes-cni=0.7.5-00
+          - swapoff -a
+          - sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+      networks:
+        - network: '${resource.k8s_vm_network.id}'
+          assignment: static
       constraints:
         - tag: 'platform:vsphere'
-        - tag: 'env:${input.environment}'
+        - tag: 'env:prod'
+  k8s_master:
+    type: Cloud.Machine
+    dependsOn:
+      - k8s_node
+    properties:
+      image: ubuntu1804
+      flavor: '${input.master_flavor}'
       cloudConfig: |
-        #cloud-config
+        #cloud-init
         repo_update: true
         repo_upgrade: all
         packages:
@@ -64,6 +125,41 @@ resources:
             host_name_long=$(hostname -f)
             echo "$node_ip    $host_name_long $host_name_short" > /root/master.txt
           path: /root/checkhostname.sh
+        - content: |
+            echo ${resource.k8s_node.address} >> /root/node_addresses.txt
+            sed -i 's/\[//g' /root/node_addresses.txt
+            sed -i 's/\]//g' /root/node_addresses.txt
+            cat /root/master.txt >> /root/allips.txt
+            value=$(cat /root/node_addresses.txt)
+            arr=$(echo $value | tr "," "\n")
+            var=1
+            for node in $arr
+            do     
+            sshpass -p 'vmwarek8s' scp -o StrictHostKeyChecking=no root@$node:/root/node.txt /root/node$var.txt
+            cat /root/node$var.txt >> /root/allips.txt
+            var=$((var+1))
+            done
+            cat /root/allips.txt >> /etc/hosts
+            value=$(cat /root/node_addresses.txt)
+            arr=$(echo $value | tr "," "\n")
+            for node in $arr
+            do
+            sshpass -p 'vmwarek8s' scp -o StrictHostKeyChecking=no /root/allips.txt root@$node:/root/allips.txt
+            sshpass -p 'vmwarek8s' ssh -o StrictHostKeyChecking=no root@$node 'cat /root/allips.txt >> /etc/hosts'
+            done
+          path: /root/register_nodes.sh
+        - content: |
+            joincommand=$(kubeadm token create --print-join-command)
+            echo $joincommand >> /root/join.sh
+            value=$(cat /root/node_addresses.txt)
+            arr=$(echo $value | tr "," "\n")
+            for node in $arr
+            do
+            sshpass -p 'vmwarek8s' scp -o StrictHostKeyChecking=no /root/join.sh root@$node:/root/join.sh
+            sshpass -p 'vmwarek8s' ssh -o StrictHostKeyChecking=no root@$node 'chmod +x /root/join.sh'
+            sshpass -p 'vmwarek8s' ssh -o StrictHostKeyChecking=no root@$node 'sudo bash /root/join.sh'
+            done
+          path: /root/join_command.sh
         - content: |
             apiVersion: v1
             kind: ConfigMap
@@ -105,12 +201,14 @@ resources:
           - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
           - sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
           - service sshd restart
+          - chmod +x /root/register_nodes.sh
+          - sudo bash /root/register_nodes.sh
           - apt-get update -y
           - apt-get install apt-transport-https ca-certificates curl software-properties-common -y
           - sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
           - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
           - apt-get update -y
-          - apt-get install -y docker-ce=$(apt-cache madison docker-ce | grep 18.09 | head -1 | awk '{print $3}')          
+          - apt-get install -y docker-ce=$(apt-cache madison docker-ce | grep 18.09 | head -1 | awk '{print $3}')
           - sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
           - echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee /etc/apt/sources.list.d/kubernetes.list
           - apt-get update -y
@@ -126,7 +224,6 @@ resources:
           - sleep 60
           - export KUBECONFIG=/etc/kubernetes/admin.conf
           - kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
-          - kubectl taint nodes --all node-role.kubernetes.io/master-
           - kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/namespace.yaml
           - kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/metallb.yaml
           - kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
@@ -138,12 +235,17 @@ resources:
           - export TOKEN=$(kubectl -n kubernetes-dashboard describe secret $SECRET_NAME | grep -E '^token' | cut -f2 -d':' | tr -d " ")
           - echo $TOKEN >> /etc/kubernetes/token.txt
           - sudo curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-          - sudo chmod 700 get_helm.sh
+          - chmod 700 get_helm.sh
           - sudo ./get_helm.sh
+          - chmod +x /root/join_command.sh
+          - sudo bash /root/join_command.sh
       networks:
-        - network: '${resource.k8s_network.id}'
+        - network: '${resource.k8s_vm_network.id}'
           assignment: static
-  k8s_network:
+      constraints:
+        - tag: 'platform:vsphere'
+        - tag: 'env:${input.environment}'
+  k8s_vm_network:
     type: Cloud.Network
     properties:
       networkType: existing
