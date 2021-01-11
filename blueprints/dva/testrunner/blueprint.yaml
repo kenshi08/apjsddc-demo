@@ -1,6 +1,6 @@
 formatVersion: 1
 name: testrunner
-version: 1.2
+version: 1.3
 inputs:
   application:
     type: string
@@ -13,6 +13,7 @@ inputs:
     enum:
       - dev
       - test
+      - prod
   platform:
     type: string
     description: Select target cloud
