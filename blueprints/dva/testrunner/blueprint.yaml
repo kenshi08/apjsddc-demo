@@ -42,7 +42,6 @@ resources:
       networkType: existing
       constraints:
         - tag: 'function:mgmt'
-        - tag: 'env:${input.environment}'
   testrunner:
     type: Cloud.Machine
     properties:
@@ -54,6 +53,7 @@ resources:
       resourceGroupName: '${input.azureresourcegrp}'
       constraints:
         - tag: 'platform:${input.platform}'
+        - tag: 'env:${input.environment}'
       cloudConfig: |
         #cloud-config
         packages:
