@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 1.5
+version: 1.6
 inputs:
   application:
     type: string
@@ -109,7 +109,8 @@ resources:
          - echo ${resource.mysql.networks[0].address}
          - sudo systemctl restart apache2
          # Wavefront config
-         - 'sudo bash -c "$(curl -sL https://wavefront.com/install)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
+         # - 'sudo bash -c "$(curl -sL https://wavefront.com/install)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
+         - 'sudo bash -c "$(curl -sL https://wavefronthq.github.io/wavefront-cli/install.sh)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
          - [bash, /etc/telegraf/appendTags.sh]
          - sudo systemctl restart telegraf        
         write_files:
@@ -179,7 +180,8 @@ resources:
         - export MYSQL_ROOT_PASSWORD=Tito2016
         - sudo mysql --user=root --password=$MYSQL_ROOT_PASSWORD < create-tito-db.sql
         #wavefront
-        - 'sudo bash -c "$(curl -sL https://wavefront.com/install)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
+        # - 'sudo bash -c "$(curl -sL https://wavefront.com/install)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
+        - 'sudo bash -c "$(curl -sL https://wavefronthq.github.io/wavefront-cli/install.sh)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
         - sed -i 's|127.0.0.1|'$HOSTNAME'|g' /etc/telegraf/telegraf.d/mysql.conf
         - sudo systemctl restart telegraf
         - [bash, /etc/telegraf/appendTags.sh]
