@@ -1,6 +1,6 @@
 formatVersion: 1
 name: wavefront-proxy
-version: 1.4
+version: 1.5
 inputs:
   wavefrontURL:
     type: string
@@ -56,24 +56,26 @@ resources:
           assignment: '${input.platform == "vsphere" ? "static" : "dynamic"}'
       cloudConfig: |
         #cloud-config
+        ssh_pwauth: 'yes'
+        chpasswd:
+          list: |
+            wavefront:VMware1!
+            expire: false
         users:
+          - default
           - name: wavefront
+            passwd: VMware1!
+            lock_passwd: false
             ssh-authorized-keys:
             - ${input.sshkey}
-            sudo: ['ALL=(ALL) NOPASSWD:ALL']
-            groups: sudo
+            sudo: 
+              - 'ALL=(ALL) NOPASSWD:ALL'
+            groups: 
+              - wheel
+              - sudo
+              -admin
             shell: /bin/bash
         runcmd:
-          - USER='wfproxy'
-          - PASS='VMware1!'
-          - echo $USER:$PASS | /usr/sbin/chpasswd
-          - echo $USER:$PASS | /usr/sbin/chpasswd
-          - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
-          - sed -i "s/#PasswordAuthentication yes/PasswordAuthentication yes/g" /etc/ssh/sshd_config
-          - sed -i -e '$aAllowUsers wfproxy' /etc/ssh/sshd_config
-          - sed -i -e "s/^#MaxSessions .*\$/MaxSessions 100/" /etc/ssh/sshd_config
-          - sed -i -e "s/^#MaxStartups .*\$/MaxStartups 100/" /etc/ssh/sshd_config
-          - service ssh reload
           - sudo bash -c "$(curl -sL https://wavefronthq.github.io/wavefront-cli/install.sh)" -- install --proxy --wavefront-url https://${input.wavefrontURL} --api-token ${input.wavefrontToken}
   pub_net:
     type: Cloud.Network
