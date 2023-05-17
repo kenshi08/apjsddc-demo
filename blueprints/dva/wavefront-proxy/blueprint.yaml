@@ -1,6 +1,6 @@
 formatVersion: 1
 name: wavefront-proxy
-version: 1.2
+version: 1.3
 inputs:
   wavefrontURL:
     type: string
@@ -8,7 +8,7 @@ inputs:
   wavefrontToken:
     type: string
     encrypted: true
-    default: eca7ad1e-b718-4d5f-a848-4b43cd6eb8ae
+    default: 12759f77-0477-4da3-82da-f1d3f5f178bd
   application:
     type: string
     default: shared-service
@@ -78,7 +78,7 @@ resources:
             groups: sudo
             shell: /bin/bash
         runcmd:
-          - 'sudo bash -c "$(curl -sL https://wavefront.com/install)" -- install --proxy --wavefront-url https://${input.wavefrontURL} --api-token ${input.wavefrontToken}'
+          - 'sudo bash -c "$(curl -sL https://wavefronthq.github.io/wavefront-cli/install.sh)" -- install --proxy --wavefront-url https://${input.wavefrontURL} --api-token ${input.wavefrontToken}'
   pub_net:
     type: Cloud.Network
     properties:
