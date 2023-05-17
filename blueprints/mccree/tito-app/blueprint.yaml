@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 1.4
+version: 1.5
 inputs:
   application:
     type: string
@@ -40,7 +40,7 @@ inputs:
   wavefront_proxy:
     type: string
     title: Wavefront proxy
-    default: 13.250.28.125
+    default: 54.255.246.179
 resources:
   fe-lb:
     type: Cloud.LoadBalancer
