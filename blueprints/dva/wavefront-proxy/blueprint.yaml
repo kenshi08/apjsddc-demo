@@ -1,6 +1,6 @@
 formatVersion: 1
 name: wavefront-proxy
-version: 1.3
+version: 1.4
 inputs:
   wavefrontURL:
     type: string
@@ -40,20 +40,6 @@ inputs:
     encrypted: true
     default: ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEA831LifYON4t7lWDRH/vPcTMRG9w/4rMBMLBRs6MIRnq2ch4KJoDKwyWTcYrDLmKUEPsaVzGnznL5zWxzBLL8oaKE5gMPrzWQUVMn7KtMMKyduLuHy50N4x+AY4cEhhch7mLBFOMeeGA4jTJTzbbqZox9zST0BrhNaf+cdqc+jpM11KTOjAP8961xhfTh6aRcBZadnKqBzA+RJ8hzzsAQSuSShaB+t/i2zkfMTzsm0mXlSmP9eFDADcra5e0uFgedCfxITqgcZIu8deHUc5cqIOS+NB+4qbGcgLeEtpBtHJ1Y402+mwVU4iDJwmC+KHXd8jlydLKVaivVhOZmprh/Cw==
 resources:
-  wf-lb:
-    type: Cloud.LoadBalancer
-    properties:
-      name: wf-lb
-      resourceGroupName: '${input.azureresourcegrp}'
-      routes:
-        - instancePort: 2878
-          instanceProtocol: tcp
-          protocol: tcp
-          port: 2878
-      network: '${resource.pub_net.name}'
-      instances:
-        - '${resource.wf_proxy.id}'
-      internetFacing: true
   wf_proxy:
     type: Cloud.Machine
     properties:
@@ -78,7 +64,17 @@ resources:
             groups: sudo
             shell: /bin/bash
         runcmd:
-          - 'sudo bash -c "$(curl -sL https://wavefronthq.github.io/wavefront-cli/install.sh)" -- install --proxy --wavefront-url https://${input.wavefrontURL} --api-token ${input.wavefrontToken}'
+          - USER='wfproxy'
+          - PASS='VMware1!'
+          - echo $USER:$PASS | /usr/sbin/chpasswd
+          - echo $USER:$PASS | /usr/sbin/chpasswd
+          - sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          - sed -i "s/#PasswordAuthentication yes/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+          - sed -i -e '$aAllowUsers wfproxy' /etc/ssh/sshd_config
+          - sed -i -e "s/^#MaxSessions .*\$/MaxSessions 100/" /etc/ssh/sshd_config
+          - sed -i -e "s/^#MaxStartups .*\$/MaxStartups 100/" /etc/ssh/sshd_config
+          - service ssh reload
+          - sudo bash -c "$(curl -sL https://wavefronthq.github.io/wavefront-cli/install.sh)" -- install --proxy --wavefront-url https://${input.wavefrontURL} --api-token ${input.wavefrontToken}
   pub_net:
     type: Cloud.Network
     properties:
@@ -87,3 +83,4 @@ resources:
       constraints:
         - tag: 'env:${input.environment}'
         - tag: 'function:mgmt'
+
