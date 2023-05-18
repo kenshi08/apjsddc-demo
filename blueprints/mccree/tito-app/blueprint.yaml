@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 1.7
+version: 1.8
 inputs:
   application:
     type: string
