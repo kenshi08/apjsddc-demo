@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 1.8
+version: 1.9
 inputs:
   application:
     type: string
@@ -71,6 +71,10 @@ resources:
           value: '${input.application}'
         - key: environment
           value: '${input.environment}'
+        - key: platform
+          value: '${input.platform}'
+        - key: function
+          value: database  
       resourceGroupName: '${input.platform == "azure" ? "apj-sddc-demo" : ""}'
       image: ubuntu1804
       flavor: small
@@ -133,7 +137,7 @@ resources:
             echo 'app="${input.application}"'
             echo 'environment="${input.environment}"'
             echo 'platform="${input.platform}"'
-            echo 'function=application'
+            echo 'function="application"'
             ) -i -- /etc/telegraf/telegraf.conf   
       name: tito-frontend
       networks:
@@ -234,7 +238,7 @@ resources:
             echo 'app="${input.application}"'
             echo 'environment="${input.environment}"'
             echo 'platform="${input.platform}"'
-            echo 'function=database'
+            echo 'function="database"'
             ) -i -- /etc/telegraf/telegraf.conf
       networks:
         - name: '${private_net.name}'
