@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 1.6
+version: 1.7
 inputs:
   application:
     type: string
@@ -30,7 +30,7 @@ inputs:
   sshkey:
     type: string
     description: Instance SSH Key
-    default: ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEA831LifYON4t7lWDRH/vPcTMRG9w/4rMBMLBRs6MIRnq2ch4KJoDKwyWTcYrDLmKUEPsaVzGnznL5zWxzBLL8oaKE5gMPrzWQUVMn7KtMMKyduLuHy50N4x+AY4cEhhch7mLBFOMeeGA4jTJTzbbqZox9zST0BrhNaf+cdqc+jpM11KTOjAP8961xhfTh6aRcBZadnKqBzA+RJ8hzzsAQSuSShaB+t/i2zkfMTzsm0mXlSmP9eFDADcra5e0uFgedCfxITqgcZIu8deHUc5cqIOS+NB+4qbGcgLeEtpBtHJ1Y402+mwVU4iDJwmC+KHXd8jlydLKVaivVhOZmprh/Cw==
+    default: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRDoEwuRngIEKVGnmeULwtpt1wNGiJV1qonI8IcCDNo9CLL1sJMui0K7uzP7LPQk2NvJLBBbI6BOcKUr8Z9c5MdLHtklHKFHZT7yR/kZqa34WsEcTn2DT3I0QC89nfapk8DIJ/Uq2TDMB2Ee3SSyWIiBpWJuRhYuw8g6I2pwvd27T0iK8FNelr3AT5yzqF4GdfhosX/6KVPWZmeEDyY/uw45Wl3QQd8Nsssl0FcAc6tl0NXtfns3VSX6EfVpiYcl01BKZW/QpsNH7oN8Q5oWYbSF3s8gYF2qeng/oprCSIOkdCfe8zrP8YMDfOc6QdxXTxfI63vGKAA15mKZfXRKvr
     encrypted: true
   instance_count:
     type: integer
@@ -72,7 +72,7 @@ resources:
         - key: environment
           value: '${input.environment}'
       resourceGroupName: '${input.platform == "azure" ? "apj-sddc-demo" : ""}'
-      image: ubuntu1604
+      image: ubuntu1804
       flavor: small
       remoteAccess:
         username: ubuntu
@@ -88,6 +88,13 @@ resources:
         #cloud-config
         # log all cloud-init process output (info & errors) to a logfile
         output: {all: ">> /var/log/cloud-init-output.log"}
+        users:
+          - name: configuser
+            ssh-authorized-keys:
+            - ${input.sshkey}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
         packages:
          - git
         runcmd:
@@ -109,7 +116,6 @@ resources:
          - echo ${resource.mysql.networks[0].address}
          - sudo systemctl restart apache2
          # Wavefront config
-         # - 'sudo bash -c "$(curl -sL https://wavefront.com/install)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
          - 'sudo bash -c "$(curl -sL https://wavefronthq.github.io/wavefront-cli/install.sh)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
          - [bash, /etc/telegraf/appendTags.sh]
          - sudo systemctl restart telegraf        
@@ -127,7 +133,7 @@ resources:
             echo 'app="${input.application}"'
             echo 'environment="${input.platform}"'
             ) -i -- /etc/telegraf/telegraf.conf   
-      name: FE
+      name: tito-frontend
       networks:
         - name: '${resource.public_net.name}'
           network: '${resource.public_net.id}'
@@ -136,7 +142,7 @@ resources:
     type: Cloud.Machine
     properties:
       name: mysql
-      image: ubuntu1604
+      image: ubuntu1804
       flavor: small
       tags:
         - key: application
@@ -154,6 +160,13 @@ resources:
         #cloud-config
         # log all cloud-init process output (info & errors) to a logfile
         output: {all: ">> /var/log/cloud-init-output.log"}
+        users:
+          - name: configuser
+            ssh-authorized-keys:
+            - ${input.sshkey}
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
         runcmd:
         - sudo apt-get update
         - sudo git clone https://github.com/gnemkiy/testcreds.git
@@ -180,7 +193,6 @@ resources:
         - export MYSQL_ROOT_PASSWORD=Tito2016
         - sudo mysql --user=root --password=$MYSQL_ROOT_PASSWORD < create-tito-db.sql
         #wavefront
-        # - 'sudo bash -c "$(curl -sL https://wavefront.com/install)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
         - 'sudo bash -c "$(curl -sL https://wavefronthq.github.io/wavefront-cli/install.sh)" -- install --agent --proxy-address ${input.wavefront_proxy} --proxy-port 2878'
         - sed -i 's|127.0.0.1|'$HOSTNAME'|g' /etc/telegraf/telegraf.d/mysql.conf
         - sudo systemctl restart telegraf
