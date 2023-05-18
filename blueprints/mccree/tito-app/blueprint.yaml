@@ -131,7 +131,9 @@ resources:
             #!/bin/sh
             sed '/\[global_tags\]/r'<(
             echo 'app="${input.application}"'
-            echo 'environment="${input.platform}"'
+            echo 'environment="${input.environment}"'
+            echo 'platform="${input.platform}"'
+            echo 'function=application'
             ) -i -- /etc/telegraf/telegraf.conf   
       name: tito-frontend
       networks:
@@ -149,6 +151,10 @@ resources:
           value: '${input.application}'
         - key: environment
           value: '${input.environment}'
+        - key: platform
+          value: '${input.platform}'
+        - key: function
+          value: database
       resourceGroupName: '${input.platform == "azure" ? "apj-sddc-demo" : ""}'
       remoteAccess:
         username: ubuntu
@@ -227,6 +233,8 @@ resources:
             sed '/\[global_tags\]/r'<(
             echo 'app="${input.application}"'
             echo 'environment="${input.environment}"'
+            echo 'platform="${input.platform}"'
+            echo 'function=database'
             ) -i -- /etc/telegraf/telegraf.conf
       networks:
         - name: '${private_net.name}'
