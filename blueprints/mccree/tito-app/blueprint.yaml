@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 2.3
+version: 2.4
 inputs:
   application:
     type: string
@@ -64,8 +64,8 @@ resources:
     type: Cloud.Machine
     dependsOn:
       - mysql
-    name: tito-frontend  
     properties:
+      name: tito-frontend  
       count: '${input.platform == "vmc" ? 1 : input.instance_count}'
       tags:
         - key: application
