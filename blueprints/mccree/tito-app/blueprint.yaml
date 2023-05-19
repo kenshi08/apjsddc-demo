@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 2.2
+version: 2.3
 inputs:
   application:
     type: string
@@ -75,7 +75,7 @@ resources:
         - key: platform
           value: '${input.platform}'
         - key: function
-          value: database  
+          value: application  
       resourceGroupName: '${input.platform == "azure" ? "apj-sddc-demo" : ""}'
       image: ubuntu1804
       flavor: small
