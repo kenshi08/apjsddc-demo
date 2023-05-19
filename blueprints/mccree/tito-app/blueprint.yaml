@@ -1,6 +1,6 @@
 formatVersion: 1
 name: tito-app
-version: 2.1
+version: 2.2
 inputs:
   application:
     type: string
@@ -64,6 +64,7 @@ resources:
     type: Cloud.Machine
     dependsOn:
       - mysql
+    name: tito-frontend  
     properties:
       count: '${input.platform == "vmc" ? 1 : input.instance_count}'
       tags:
@@ -139,7 +140,6 @@ resources:
             echo 'platform="${input.platform}"'
             echo 'function="application"'
             ) -i -- /etc/telegraf/telegraf.conf   
-      name: tito-frontend
       networks:
         - name: '${resource.public_net.name}'
           network: '${resource.public_net.id}'
@@ -147,7 +147,7 @@ resources:
   mysql:
     type: Cloud.Machine
     properties:
-      name: mysql
+      name: tito-mysql
       image: ubuntu1804
       flavor: small
       tags:
