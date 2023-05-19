@@ -113,8 +113,8 @@ resources:
          - sudo chmod +x Tito/asset/Deployment/CloudAssembly/apache/*
          - sudo cp Tito/asset/Deployment/CloudAssembly/apache/dir.conf /etc/apache2/mods-enabled/dir.conf
          - sudo printf '\n export TITODBSERVER=${resource.mysql.networks[0].address}' >> Tito/asset/Deployment/CloudAssembly/apache/envvars
-         - sudo printf '\n export TITODBUSERNAME=root' >> Tito/asset/Deployment/CloudAssembly/apache/envvars
-         - sudo printf '\n export TITODBPASSWORD=Tito2016' >> Tito/asset/Deployment/CloudAssembly/apache/envvars
+         - sudo printf '\n export TITODBUSERNAME=Tito' >> Tito/asset/Deployment/CloudAssembly/apache/envvars
+         - sudo printf '\n export TITODBPASSWORD=VMware1!' >> Tito/asset/Deployment/CloudAssembly/apache/envvars
          - sudo printf '\n export MAPSKEY=${input.mapsapikey}' >> Tito/asset/Deployment/CloudAssembly/apache/envvars 
          - sudo cp Tito/asset/Deployment/CloudAssembly/apache/envvars /etc/apache2/envvars
          - echo ${resource.mysql.id}
